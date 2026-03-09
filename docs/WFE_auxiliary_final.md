@@ -78,7 +78,11 @@ $$
 \end{aligned}
 $$
 
-**WFE 输出**：取去噪目标对应位置，$x_{\text{wfe}} = \hat{S}_2 \in \mathbb{R}^{B \times d}$。
+**WFE 输出**：取去噪目标对应位置，即
+
+$$    
+x_{\text{wfe}} = \hat{S}_2 \in \mathbb{R}^{B \times d}
+    $$
 
 ### 2.5 主干与辅助残差融合
 
