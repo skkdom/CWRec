@@ -21,7 +21,7 @@
 设输入四路模态为 Vision $V$、Text $T$、Noisy_ID $X_{\text{noisy}}$、Time Embedding $E_t$，构造有序伪序列：
 
 $$
-S = [V,\; T,\; X_{\text{noisy}},\; E_t] \in \mathbb{R}^{B \times 4 \times d}
+S = [V\; T\; X_{\text{noisy}}\; E_t] \in \mathbb{R}^{B \times 4 \times d}
 $$
 
 **设计动机**：将“内容模态”与“状态信息”分组，使 Haar 小波的相邻差分具有明确物理意义：
