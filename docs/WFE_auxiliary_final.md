@@ -101,13 +101,7 @@ $$
 - $\epsilon_{\max}$：门控上限（如 0.15），由配置 `wfe_eps_max` 设定
 - $g$：可学习标量 `wfe_gate_logit`，初始化为 -4，使 $\sigma(-4) \approx 0.018$，训练可自动调节
 
-**等价形式**：主干与 WFE 的凸组合
-
-$$
-\hat{x} = (1 - \gamma) \, x_{\text{main}} + \gamma \, x_{\text{wfe}}
-$$
-
-当 $\gamma \to 0$ 时，完全退化为 baseline（只使用主干 self-attention 的输出）。
+**等价形式**：$`\hat{x} = (1-\gamma) x_{\text{main}} + \gamma x_{\text{wfe}}`$，即主干与 WFE 的凸组合；$`\gamma \to 0`$ 时退化为纯主干（baseline）。
 
 ---
 
