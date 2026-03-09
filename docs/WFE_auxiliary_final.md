@@ -18,75 +18,86 @@
 
 ### 2.1 有序伪序列
 
-设输入四路模态为 Vision \(V\)、Text \(T\)、Noisy_ID \(X_{\text{noisy}}\)、Time Embedding \(E_t\)，构造有序伪序列：
+设输入四路模态为 Vision $V$、Text $T$、Noisy_ID $X_{\text{noisy}}$、Time Embedding $E_t$，构造有序伪序列：
 
-\[
+$$
 S = [V,\; T,\; X_{\text{noisy}},\; E_t] \in \mathbb{R}^{B \times 4 \times d}
-\]
+$$
 
 **设计动机**：将“内容模态”与“状态信息”分组，使 Haar 小波的相邻差分具有明确物理意义：
-- **Pair 1** \((V, T)\)：\(D_1 = (V - T)/2\) 表示模态间语义差异（互补信息）
-- **Pair 2** \((X_{\text{noisy}}, E_t)\)：\(D_2 = (X_{\text{noisy}} - E_t)/2\) 表示当前状态与噪声水平的差异（即需预测的噪声残差方向）
+
+- **Pair 1** $(V, T)$：$D_1 = (V - T)/2$ 表示模态间语义差异（互补信息）
+- **Pair 2** $(X_{\text{noisy}}, E_t)$：$D_2 = (X_{\text{noisy}} - E_t)/2$ 表示当前状态与噪声水平的差异（即需预测的噪声残差方向）
 
 ### 2.2 Haar 小波分解（DWT）
 
-对长度 4 的序列，Haar 单层分解得到 2 个低频系数 \(A\) 与 2 个高频系数 \(D\)：
+对长度 4 的序列，Haar 单层分解得到 2 个低频系数 $A$ 与 2 个高频系数 $D$：
 
-\[
+$$
 A_i = \frac{S_{2i} + S_{2i+1}}{2}, \quad
 D_i = \frac{S_{2i} - S_{2i+1}}{2}, \quad i \in \{0, 1\}
-\]
+$$
 
 即：
-\[
-A_0 = \frac{V + T}{2},\quad A_1 = \frac{X_{\text{noisy}} + E_t}{2},\quad
-D_0 = \frac{V - T}{2},\quad D_1 = \frac{X_{\text{noisy}} - E_t}{2}
-\]
+
+$$
+\begin{aligned}
+A_0 &= \frac{V + T}{2}, &
+A_1 &= \frac{X_{\text{noisy}} + E_t}{2}, \\
+D_0 &= \frac{V - T}{2}, &
+D_1 &= \frac{X_{\text{noisy}} - E_t}{2}
+\end{aligned}
+$$
 
 ### 2.3 高频增强
 
-引入可学习缩放矩阵 \(\mathbf{T} \in \mathbb{R}^{2 \times d}\)（对应 `wfe_scale`），对高频系数逐元素加权：
+引入可学习缩放矩阵 $\mathbf{T} \in \mathbb{R}^{2 \times d}$（对应 `wfe_scale`），对高频系数逐元素加权：
 
-\[
+$$
 \tilde{D}_i = D_i \odot \mathbf{T}_i
-\]
+$$
 
-其中 \(\odot\) 表示逐元素乘法。模型据此学习如何根据模态差和状态差加权高频信息。
+其中 $\odot$ 表示逐元素乘法。模型据此学习如何根据模态差和状态差加权高频信息。
 
 ### 2.4 小波重构（IDWT）
 
-由 \(A\) 与 \(\tilde{D}\) 还原长度为 4 的序列：
+由 $A$ 与 $\tilde{D}$ 还原长度为 4 的序列：
 
-\[
+$$
 \hat{S}_{2i} = A_i + \tilde{D}_i,\quad \hat{S}_{2i+1} = A_i - \tilde{D}_i
-\]
+$$
 
 即：
-\[
-\hat{S}_0 = A_0 + \tilde{D}_0,\; \hat{S}_1 = A_0 - \tilde{D}_0,\;
-\hat{S}_2 = A_1 + \tilde{D}_1,\; \hat{S}_3 = A_1 - \tilde{D}_1
-\]
 
-**WFE 输出**：取去噪目标对应位置，\(x_{\text{wfe}} = \hat{S}_2 \in \mathbb{R}^{B \times d}\)。
+$$
+\begin{aligned}
+\hat{S}_0 &= A_0 + \tilde{D}_0, &
+\hat{S}_1 &= A_0 - \tilde{D}_0, \\
+\hat{S}_2 &= A_1 + \tilde{D}_1, &
+\hat{S}_3 &= A_1 - \tilde{D}_1
+\end{aligned}
+$$
+
+**WFE 输出**：取去噪目标对应位置，$x_{\text{wfe}} = \hat{S}_2 \in \mathbb{R}^{B \times d}$。
 
 ### 2.5 主干与辅助残差融合
 
-设主干 self-attention 输出为 \(x_{\text{main}}\)，WFE 输出为 \(x_{\text{wfe}}\)。最终预测采用可学习门控的残差形式：
+设主干 self-attention 输出为 $x_{\text{main}}$，WFE 输出为 $x_{\text{wfe}}$。最终预测采用可学习门控的残差形式：
 
-\[
+$$
 \hat{x} = x_{\text{main}} + \gamma \cdot (x_{\text{wfe}} - x_{\text{main}})
-\]
+$$
 
-其中门控 \(\gamma\) 定义为：
+其中门控 $\gamma$ 定义为：
 
-\[
-\gamma = \epsilon_{\max} \cdot \sigma(g),\quad \sigma(g) = \frac{1}{1 + e^{-g}}
-\]
+$$
+\gamma = \epsilon_{\max} \cdot \sigma(g), \quad \sigma(g) = \frac{1}{1 + e^{-g}}
+$$
 
-- \(\epsilon_{\max}\)：门控上限（如 0.15），由配置 `wfe_eps_max` 设定
-- \(g\)：可学习标量 `wfe_gate_logit`，初始化为 -4，使 \(\sigma(-4) \approx 0.018\)，训练可自动调节
+- $\epsilon_{\max}$：门控上限（如 0.15），由配置 `wfe_eps_max` 设定
+- $g$：可学习标量 `wfe_gate_logit`，初始化为 -4，使 $\sigma(-4) \approx 0.018$，训练可自动调节
 
-**等价形式**：\(\hat{x} = (1-\gamma) x_{\text{main}} + \gamma x_{\text{wfe}}\)，即主干与 WFE 的凸组合；\(\gamma \to 0\) 时退化为纯主干（baseline）。
+**等价形式**：$ \hat{x} = (1-\gamma) x_{\text{main}} + \gamma x_{\text{wfe}} $，即主干与 WFE 的凸组合；$ \gamma \to 0 $ 时退化为纯主干（baseline）。
 
 ---
 
