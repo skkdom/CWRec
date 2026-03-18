@@ -10,7 +10,7 @@ filter_out_cod_start_users: True
 is_multimodal_model: True
 
 checkpoint_dir: 'saved'
-save_recommended_topk: True
+save_recommended_topk: False #不储存recommended_topok文件
 recommend_topk: 'recommend_topk/'
 
 embedding_size: 64
