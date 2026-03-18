@@ -136,7 +136,7 @@ $$
 ```
 
 **说明**：  
-主干 Q/K/V 不变；`wfe_scale` 对两路高频 (V−T)、(ID−Time) 做可学习缩放；`wfe_gate_logit` 初始化为 -4，使 `sigmoid(-4)≈0.018`，训练可自行决定是否增大 gate；`wfe_eps_max` 控制 gate 上限，实验表明 0.15 时效果最佳（Recall@10、NDCG@10 可微超 baseline 约 0.0001）。
+主干 Q/K/V 不变；`wfe_scale` 对两路高频 (V−T)、(ID−Time) 做可学习缩放；`wfe_gate_logit` 初始化为 -4，使 `sigmoid(-4)≈0.018`，训练可自行决定是否增大 gate；`wfe_eps_max` 控制 gate 上限，实验表明 0.15 时效果最佳（Recall@10、NDCG@10 可微超 baseline）。
 
 ---
 
@@ -263,4 +263,4 @@ wfe_in_sample: true   # false: 采样阶段关闭 WFE，训练用 WFE、推理�
 | 4 | `p_sample` | 同上逻辑，支持 wfe_ablation 与 wfe_in_sample | 采样阶段可沿用或关闭 WFE |
 | 5 | `ccdrec.yaml` | 新增 wfe_eps_max、wfe_ablation、wfe_in_sample | 便于复现与消融实验 |
 
-此方案在 baby 数据集上可达 Recall@10≈0.0674、NDCG@10 微超 baseline（约 +0.0001），且通过可学习 gate 与实验开关支持进一步消融与调参。
+此方案在 baby 数据集上可达 Recall@10≈0.0685、NDCG@10=0.0361，sports数据集提升稳定，clothing数据集课程学习参数未知，baseline也跑不出效果，且通过可学习 gate 与实验开关支持进一步消融与调参。
